@@ -5,8 +5,18 @@ import io, os, sqlite3, uuid, hashlib
 from pathlib import Path
 from starlette.staticfiles import StaticFiles
 from datetime import datetime
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="InfraPredict Minimal API")
+
+# --- CORS RMC ---
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --- Configuration ---
 DB_PATH = "infra.db"
