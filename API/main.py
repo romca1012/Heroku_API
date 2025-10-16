@@ -6,6 +6,28 @@ from pathlib import Path
 from starlette.staticfiles import StaticFiles
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
+import inference as inf
+import torch
+import numpy as np
+
+#################PREDICTION
+# Chemin du modèle (par défaut dans API/models/best_classifier.pt)
+# MODEL_PATH = os.environ.get("MODEL_PATH", "models/best_classifier.pt")
+BASE_DIR = Path(__file__).parent
+MODEL_PATH = os.environ.get("MODEL_PATH", str(BASE_DIR / "models" / "best_classifier.pt"))
+
+# Charge le modèle une seule fois au démarrage
+MODEL = None
+try:
+    # load_classifier est défini dans inference.py
+    MODEL = inf.load_classifier(MODEL_PATH)
+    print(f"Model loaded from {MODEL_PATH}")
+except Exception as e:
+    # Ne crash pas l'app si le modèle est absent — on garde fallback
+    print(f"Warning: impossible de charger le modèle: {e}")
+    MODEL = None
+###########################################
+
 
 app = FastAPI(title="InfraPredict Minimal API")
 
@@ -49,16 +71,58 @@ def init_db():
             conn.execute("ALTER TABLE inferences ADD COLUMN created_at TEXT")
 init_db()
 
-# --- Fonction placeholder (à remplacer plus tard par le vrai modèle) ---
-def placeholder_predict(image_bytes: bytes) -> str:
-    h = hashlib.sha256(image_bytes).digest()
-    classes = [
-        "Bon état",
-        "Usure légère",
-        "Dégradation moyenne",
-        "Dégradation sévère / panne imminente",
-    ]
-    return classes[h[0] % len(classes)]
+
+def predict_with_model(image_bytes: bytes):
+    """
+    Preprocess the image, run the loaded MODEL (already loaded at startup),
+    compute probs and mapping métier using functions from inference.py.
+    Returns a dict similar to inference.predict_image() result.
+    Falls back to the old placeholder if MODEL is None.
+    """
+    # fallback placeholder if MODEL missing
+    if MODEL is None:
+        # ancienne logique placeholder
+        h = hashlib.sha256(image_bytes).digest()
+        classes = [
+            "Bon état",
+            "Usure légère",
+            "Dégradation moyenne",
+            "Dégradation sévère / panne imminente",
+        ]
+        return {"summary": {"state": classes[h[0] % len(classes)]}, "predictions": []}
+
+    # use inference module helpers
+    pil_img = inf._open_image(image_bytes)  # returns PIL.Image
+    transform = inf.get_transforms(inf.IMG_SIZE)
+    x = transform(pil_img).unsqueeze(0).to(inf.DEVICE)
+
+    with torch.no_grad():
+        logits = MODEL(x)
+        probs = torch.nn.functional.softmax(logits, dim=1).cpu().numpy()[0]
+
+    pred_id = int(np.argmax(probs))
+    pred_name = inf.CLASS_NAMES[pred_id]
+    pred_prob = float(probs[pred_id])
+    summary = inf._map_to_state(pred_name, pred_prob)
+
+    return {
+        "predictions": [
+            {"class_id": pred_id, "class_name": pred_name, "confidence": round(pred_prob, 4)}
+        ],
+        "summary": summary
+    }
+
+
+# # --- Fonction placeholder (à remplacer plus tard par le vrai modèle) ---
+# def placeholder_predict(image_bytes: bytes) -> str:
+#     h = hashlib.sha256(image_bytes).digest()
+#     classes = [
+#         "Bon état",
+#         "Usure légère",
+#         "Dégradation moyenne",
+#         "Dégradation sévère / panne imminente",
+#     ]
+#     return classes[h[0] % len(classes)]
 
 # --- Routes ---
 @app.get("/")
@@ -95,8 +159,13 @@ async def predict_image(
     base = str(request.base_url).rstrip("/")
     image_url = f"{base}/uploads/{filename}"
 
-    # Prédiction (placeholder)
-    prediction = placeholder_predict(image_bytes)
+    # # Prédiction (placeholder)
+    # prediction = placeholder_predict(image_bytes)
+
+    result = predict_with_model(image_bytes)
+    # mapping to your previous single "prediction" field:
+    # we want the "state" string
+    prediction = result.get("summary", {}).get("state", "Unknown")
 
     # Date d'enregistrement (UTC)
     created_at = datetime.utcnow().isoformat()
@@ -117,6 +186,7 @@ async def predict_image(
         "date": date,
         "longitude": longitude,
         "latitude": latitude,
+        "prediction_raw": result,
         "created_at": created_at
     }
 
