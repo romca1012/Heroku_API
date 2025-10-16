@@ -24,7 +24,7 @@ def init_db():
                 image_path TEXT NOT NULL,
                 address TEXT NOT NULL,
                 prediction TEXT NOT NULL,
-                date_taken TEXT,
+                date TEXT,
                 longitude FLOAT,
                 latitude FLOAT,
                 created_at TEXT
@@ -59,7 +59,7 @@ def root():
 async def predict_image(
     request: Request,
     address: str = Form(...),
-    date_taken: str = Form(...),
+    date: str = Form(...),
     longitude: float = Form(...),
     latitude: float = Form(...),
     file: UploadFile = File(...)
@@ -94,9 +94,9 @@ async def predict_image(
     # Enregistrer dans la base
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute(
-            "INSERT INTO inferences (id, image_path, address, prediction, date_taken, longitude, latitude, created_at) "
+            "INSERT INTO inferences (id, image_path, address, prediction, date, longitude, latitude, created_at) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (uid, image_url, address, prediction, date_taken, longitude, latitude, created_at)
+            (uid, image_url, address, prediction, date, longitude, latitude, created_at)
         )
 
     return {
@@ -104,7 +104,7 @@ async def predict_image(
         "image_url": image_url,
         "address": address,
         "prediction": prediction,
-        "date_taken": date_taken,
+        "date": date,
         "longitude": longitude,
         "latitude": latitude,
         "created_at": created_at
