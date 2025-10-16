@@ -16,16 +16,19 @@ import numpy as np
 BASE_DIR = Path(__file__).parent
 MODEL_PATH = os.environ.get("MODEL_PATH", str(BASE_DIR / "models" / "best_classifier.pt"))
 
-# Charge le modèle une seule fois au démarrage
-MODEL = None
-try:
-    # load_classifier est défini dans inference.py
-    MODEL = inf.load_classifier(MODEL_PATH)
-    print(f"Model loaded from {MODEL_PATH}")
-except Exception as e:
-    # Ne crash pas l'app si le modèle est absent — on garde fallback
-    print(f"Warning: impossible de charger le modèle: {e}")
-    MODEL = None
+# # Charge le modèle une seule fois au démarrage
+# MODEL = None
+# try:
+#     # load_classifier est défini dans inference.py
+#     MODEL = inf.load_classifier(MODEL_PATH)
+#     print(f"Model loaded from {MODEL_PATH}")
+# except Exception as e:
+#     # Ne crash pas l'app si le modèle est absent — on garde fallback
+#     print(f"Warning: impossible de charger le modèle: {e}")
+#     MODEL = None
+###TESTTTTTTTTTT
+MODEL = inf.load_classifier(MODEL_PATH)  # inf.load_classifier téléchargera automatiquement depuis GitHub si le .pt est absent
+
 ###########################################
 
 

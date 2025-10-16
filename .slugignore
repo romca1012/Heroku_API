@@ -1,0 +1,29 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Environnements virtuels
+venv/
+.env
+*.env
+
+# Données locales qui ne sont pas nécessaires
+API/uploads/
+API/results/
+API/infra.db
+API/models/*.pt
+
+# Fichiers de logs ou temporaires
+*.log
+*.tmp
+*.bak
+
+# Cache pip, build ou dist
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+
+# Dataset ou modèles lourds non utilisés pour le slug
+API/models/*.pt

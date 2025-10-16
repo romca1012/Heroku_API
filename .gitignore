@@ -1,5 +1,31 @@
-uploads/
-infra.db
+# Python cache
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.swp
+*.swo
+
+# Environnement virtuel
+venv/
 .env
+*.env
+
+# Base de données locale
+API/infra.db
+
+# Modèle PyTorch lourd
+API/models/*.pt
+
+# Dossiers temporaires
+API/uploads/
+API/results/
+
+# Logs
+*.log
+
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
