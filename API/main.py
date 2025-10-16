@@ -135,3 +135,32 @@ def get_inference(id: str):
         if not row:
             return JSONResponse(status_code=404, content={"message": "Inference introuvable."})
         return dict(row)
+@app.delete("/inferences/{id}")
+def delete_inference(id: str):
+    """
+    Supprime une inférence de la base ainsi que l'image associée dans /uploads.
+    """
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute("SELECT image_url FROM inferences WHERE id = ?", (id,)).fetchone()
+        if not row:
+            return JSONResponse(status_code=404, content={"message": "Inference introuvable."})
+
+        # Extraire le nom du fichier depuis image_url
+        image_url = row["image_url"]
+        filename = os.path.basename(image_url)
+        file_path = UPLOAD_DIR / filename
+
+        # Supprimer l'image du disque si elle existe
+        if file_path.exists():
+            try:
+                file_path.unlink()
+            except Exception as e:
+                print(f"⚠️ Erreur suppression fichier : {e}")
+
+        # Supprimer l'entrée en base
+        conn.execute("DELETE FROM inferences WHERE id = ?", (id,))
+        conn.commit()
+
+    return {"message": f"Inference {id} supprimée avec succès."}
+
