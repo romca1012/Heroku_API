@@ -6,6 +6,7 @@ from pathlib import Path
 from starlette.staticfiles import StaticFiles
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
+import numpy as np
 
 app = FastAPI(title="InfraPredict Minimal API")
 
@@ -31,7 +32,7 @@ def init_db():
         conn.execute("""
             CREATE TABLE IF NOT EXISTS inferences (
                 id TEXT PRIMARY KEY,
-                image_path TEXT NOT NULL,
+                image_url TEXT NOT NULL,
                 address TEXT NOT NULL,
                 prediction TEXT NOT NULL,
                 date TEXT,
@@ -104,7 +105,7 @@ async def predict_image(
     # Enregistrer dans la base
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute(
-            "INSERT INTO inferences (id, image_path, address, prediction, date, longitude, latitude, created_at) "
+            "INSERT INTO inferences (id, image_url, address, prediction, date, longitude, latitude, created_at) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (uid, image_url, address, prediction, date, longitude, latitude, created_at)
         )
