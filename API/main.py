@@ -7,8 +7,8 @@ from starlette.staticfiles import StaticFiles
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
 import inference as inf
-import torch
-import numpy as np
+# import torch
+# import numpy as np
 
 #################PREDICTION
 # Chemin du modèle (par défaut dans API/models/best_classifier.pt)
@@ -75,45 +75,45 @@ def init_db():
 init_db()
 
 
-def predict_with_model(image_bytes: bytes):
-    """
-    Preprocess the image, run the loaded MODEL (already loaded at startup),
-    compute probs and mapping métier using functions from inference.py.
-    Returns a dict similar to inference.predict_image() result.
-    Falls back to the old placeholder if MODEL is None.
-    """
-    # # fallback placeholder if MODEL missing
-    # if MODEL is None:
-    #     # ancienne logique placeholder
-    #     h = hashlib.sha256(image_bytes).digest()
-    #     classes = [
-    #         "Bon état",
-    #         "Usure légère",
-    #         "Dégradation moyenne",
-    #         "Dégradation sévère / panne imminente",
-    #     ]
-    #     return {"summary": {"state": classes[h[0] % len(classes)]}, "predictions": []}
+# def predict_with_model(image_bytes: bytes):
+#     """
+#     Preprocess the image, run the loaded MODEL (already loaded at startup),
+#     compute probs and mapping métier using functions from inference.py.
+#     Returns a dict similar to inference.predict_image() result.
+#     Falls back to the old placeholder if MODEL is None.
+#     """
+#     # fallback placeholder if MODEL missing
+#     if MODEL is None:
+#         # ancienne logique placeholder
+#         h = hashlib.sha256(image_bytes).digest()
+#         classes = [
+#             "Bon état",
+#             "Usure légère",
+#             "Dégradation moyenne",
+#             "Dégradation sévère / panne imminente",
+#         ]
+#         return {"summary": {"state": classes[h[0] % len(classes)]}, "predictions": []}
 
-    # # use inference module helpers
-    # pil_img = inf._open_image(image_bytes)  # returns PIL.Image
-    # transform = inf.get_transforms(inf.IMG_SIZE)
-    # x = transform(pil_img).unsqueeze(0).to(inf.DEVICE)
+#     # use inference module helpers
+#     pil_img = inf._open_image(image_bytes)  # returns PIL.Image
+#     transform = inf.get_transforms(inf.IMG_SIZE)
+#     x = transform(pil_img).unsqueeze(0).to(inf.DEVICE)
 
-    # with torch.no_grad():
-    #     logits = MODEL(x)
-    #     probs = torch.nn.functional.softmax(logits, dim=1).cpu().numpy()[0]
+#     with torch.no_grad():
+#         logits = MODEL(x)
+#         probs = torch.nn.functional.softmax(logits, dim=1).cpu().numpy()[0]
 
-    # pred_id = int(np.argmax(probs))
-    # pred_name = inf.CLASS_NAMES[pred_id]
-    # pred_prob = float(probs[pred_id])
-    # summary = inf._map_to_state(pred_name, pred_prob)
+#     pred_id = int(np.argmax(probs))
+#     pred_name = inf.CLASS_NAMES[pred_id]
+#     pred_prob = float(probs[pred_id])
+#     summary = inf._map_to_state(pred_name, pred_prob)
 
-    # return {
-    #     "predictions": [
-    #         {"class_id": pred_id, "class_name": pred_name, "confidence": round(pred_prob, 4)}
-    #     ],
-    #     "summary": summary
-    # }
+#     return {
+#         "predictions": [
+#             {"class_id": pred_id, "class_name": pred_name, "confidence": round(pred_prob, 4)}
+#         ],
+#         "summary": summary
+#     }
 
 
 # --- Fonction placeholder (à remplacer plus tard par le vrai modèle) ---
