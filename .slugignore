@@ -2,28 +2,27 @@
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+*.swp
+*.swo
 
-# Environnements virtuels
+# Environnement virtuel
 venv/
 .env
 *.env
 
-# Données locales qui ne sont pas nécessaires
+# Base de données locale
+API/infra.db
+
+# Modèle PyTorch lourd
+API/models/*.pt
+
+# Dossiers temporaires
 API/uploads/
 API/results/
-API/infra.db
-API/models/*.pt
 
-# Fichiers de logs ou temporaires
+# Logs
 *.log
-*.tmp
-*.bak
 
-# Cache pip, build ou dist
-build/
-dist/
-*.egg-info/
-pip-wheel-metadata/
-
-# Dataset ou modèles lourds non utilisés pour le slug
-API/models/*.pt
+# MacOS
+.DS_Store
